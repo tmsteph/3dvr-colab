@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>3DVR Collab</title>
+  <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #111; color: #fff; margin: 0; padding: 0; }
+    header { background: #222; padding: 1rem; text-align: center; font-size: 1.5rem; }
+    nav { display: flex; justify-content: center; background: #333; }
+    nav button { flex: 1; padding: 1rem; background: #333; border: none; color: #ccc; cursor: pointer; }
+    nav button.active { background: #444; color: #fff; }
+    section { display: none; padding: 1rem; }
+    section.active { display: block; }
+    #chat-log, #notes-log { max-height: 60vh; overflow-y: auto; margin-bottom: 1rem; }
+    .msg { padding: 0.5rem; margin-bottom: 0.3rem; background: #222; border-radius: 5px; }
+    input, textarea, button { font-size: 1rem; padding: 0.5rem; margin-right: 0.5rem; width: 100%; box-sizing: border-box; }
+    .input-row { display: flex; gap: 0.5rem; }
+  </style>
+</head>
+<body>
+  <header>3DVR Collab — Chat + Notes</header>
+  <nav>
+    <button onclick="switchTab('chat')" id="tab-chat" class="active">Chat</button>
+    <button onclick="switchTab('notes')" id="tab-notes">Notes</button>
+  </nav>
+
+  <section id="chat" class="active">
+    <div id="chat-log"></div>
+    <div class="input-row">
+      <input id="chat-name" placeholder="Your name">
+      <input id="chat-msg" placeholder="Your message">
+      <button onclick="sendMessage()">Send</button>
+    </div>
+  </section>
+
+  <section id="notes">
+    <div id="notes-log"></div>
+    <div class="input-row">
+      <textarea id="notes-content" rows="4" placeholder="Write a shared note or task..."></textarea>
+      <button onclick="saveNote()">Save</button>
+    </div>
+  </section>
+
+  <script>
+    const gun = Gun();
+
+    // TAB SWITCH
+    function switchTab(tab) {
+      document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
+      document.querySelector(`#${tab}`).classList.add('active');
+      document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+      document.querySelector(`#tab-${tab}`).classList.add('active');
+    }
+
+    // CHAT
+    const chat = gun.get('3dvr-chat');
+    chat.map().on((data, id) => {
+      if (!data || document.getElementById(`msg-${id}`)) return;
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.id = `msg-${id}`;
+      div.textContent = `${data.name || "anon"}: ${data.msg}`;
+      document.getElementById('chat-log').appendChild(div);
+    });
+
+    function sendMessage() {
+      const name = document.getElementById('chat-name').value || 'anon';
+      const msg = document.getElementById('chat-msg').value;
+      if (msg.trim()) {
+        chat.set({ name, msg });
+        document.getElementById('chat-msg').value = '';
+      }
+    }
+
+    // NOTES
+    const notes = gun.get('3dvr-notes');
+    notes.map().on((data, id) => {
+      if (!data || document.getElementById(`note-${id}`)) return;
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.id = `note-${id}`;
+      div.textContent = data.text;
+      document.getElementById('notes-log').appendChild(div);
+    });
+
+    function saveNote() {
+      const content = document.getElementById('notes-content').value;
+      if (content.trim()) {
+        notes.set({ text: content });
+        document.getElementById('notes-content').value = '';
+      }
+    }
+  </script>
+</body>
+</html>
