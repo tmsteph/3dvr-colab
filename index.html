@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>3DVR Collab</title>
+  <title>3DVR Collab — Chat + Notes</title>
   <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
   <style>
     body { font-family: sans-serif; background: #111; color: #fff; margin: 0; padding: 0; }
@@ -14,8 +14,9 @@
     section.active { display: block; }
     #chat-log, #notes-log { max-height: 60vh; overflow-y: auto; margin-bottom: 1rem; }
     .msg { padding: 0.5rem; margin-bottom: 0.3rem; background: #222; border-radius: 5px; }
-    input, textarea, button { font-size: 1rem; padding: 0.5rem; margin-right: 0.5rem; width: 100%; box-sizing: border-box; }
+    input, textarea, button { font-size: 1rem; padding: 0.5rem; width: 100%; box-sizing: border-box; }
     .input-row { display: flex; gap: 0.5rem; }
+    textarea { resize: vertical; }
   </style>
 </head>
 <body>
@@ -43,9 +44,10 @@
   </section>
 
   <script>
-    const gun = Gun();
+    // Use public Gun relay peer
+    const gun = Gun(['https://gun-manhattan.herokuapp.com/gun']);
 
-    // TAB SWITCH
+    // Tab switching
     function switchTab(tab) {
       document.querySelectorAll('section').forEach(sec => sec.classList.remove('active'));
       document.querySelector(`#${tab}`).classList.add('active');
